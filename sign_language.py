@@ -75,9 +75,23 @@ class SignLanguage:
         # TODO : split into training and validation set
         # TODO : reshape each example into a 2D image (28, 28, 1)
 
+        images = images.astype('float32') / 255.0
+
+        images = images.reshape((-1, 28, 28, 1))
+
+        num_classes = int(labels.max() + 1)
+
+        labels = keras.utils.to_categorical(labels, num_classes)
+
+        self.num_classes = num_classes
+
+        x_train, x_test, y_train, y_test = train_test_split(images, labels, test_size=0.2,
+        stratify=labels.argmax(axis=1),
+        )
+
         self.data = {
-            "train": None, # (x_train, y_train)
-            "test" : None, # (x_test, y_test)
+            "train": (x_train, y_train),
+            "test" : (x_test, y_test)
         }
 
     def train(self, batch_size:int=128, epochs:int=50, verbose:int=1):
