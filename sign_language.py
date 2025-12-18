@@ -42,24 +42,27 @@ class SignLanguage:
         model = Sequential()
         num_classes = getattr(self, "num_classes", 26)
 
-        model.add(Conv2D(32, (3, 3), activation='relu', padding = "same", input_shape=(28, 28, 1)))
+        model.add(Conv2D(32, (3, 3), activation="relu", padding="same", input_shape=(28, 28, 1)))
         model.add(MaxPooling2D((2, 2)))
 
-        model.add(Conv2D(64, (3, 3), activation='relu', padding = "same"))
+        model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
         model.add(MaxPooling2D((2, 2)))
 
-        model.add(Conv2D(128, (3, 3), activation='relu', padding = "same"))
+        model.add(Conv2D(128, (3, 3), activation="relu", padding="same"))
         model.add(MaxPooling2D((2, 2)))
 
         model.add(Flatten())
         model.add(Dropout(0.3))
-        model.add(Dense(128, activation='relu'))
+        model.add(Dense(128, activation="relu"))
         model.add(Dropout(0.3))
 
-        model.add(Dense(num_classes, activation='softmax'))
+        model.add(Dense(num_classes, activation="softmax"))
 
-        # TODO: Compile the model with categorical_crossentropy
-        model.compile(optimizer="adam", loss=keras.losses.categorical_crossentropy, metrics=['accuracy'])
+        model.compile(
+            optimizer="adam",
+            loss=keras.losses.categorical_crossentropy,
+            metrics=["accuracy"],
+        )
 
         self.model = model
 
@@ -75,24 +78,31 @@ class SignLanguage:
         # TODO : split into training and validation set
         # TODO : reshape each example into a 2D image (28, 28, 1)
 
-        images = images.astype('float32') / 255.0
-
+        images = images.astype("float32") / 255.0
         images = images.reshape((-1, 28, 28, 1))
 
-        num_classes = int(labels.max() + 1)
+        labels = labels.astype(int)
 
-        labels = keras.utils.to_categorical(labels, num_classes)
+        min_label = int(labels.min())
+        if min_label != 0:
+          labels = labels - min_label
 
-        self.num_classes = num_classes
+        self.num_classes = int(labels.max()) + 1
+        labels = keras.utils.to_categorical(labels, num_classes=self.num_classes)
 
-        x_train, x_test, y_train, y_test = train_test_split(images, labels, test_size=0.2,
-        stratify=labels.argmax(axis=1),
+        x_train, x_test, y_train, y_test = train_test_split(
+          images,
+          labels,
+          test_size=0.2,
+          random_state=42,
+          stratify=labels.argmax(axis=1),
         )
 
         self.data = {
-            "train": (x_train, y_train),
-            "test" : (x_test, y_test)
+          "train": (x_train, y_train),
+          "test": (x_test, y_test),
         }
+        self.create_model()
 
     def train(self, batch_size:int=128, epochs:int=50, verbose:int=1):
         """
@@ -102,8 +112,20 @@ class SignLanguage:
         :param epochs     Number of epochs to use for training
         :param verbose    Whether or not to print training output
         """
+        if self.model is None:
+          self.create_model()
 
-        history = None
+        x_train, y_train = self.data["train"]
+        x_test, y_test = self.data["test"]
+
+        history = self.model.fit(
+          x_train,
+          y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=verbose,
+          validation_data=(x_test, y_test),
+        )
         return history
 
     def predict(self, data):
