@@ -139,7 +139,15 @@ class SignLanguage:
         # Don't forget to normalize the data in the same way as training data
         # self.model.predict() and np.argmax( , axis=1) might help
 
-        return np.zeros(data.shape[0])
+        data = data.astype("float32") / 255.0
+
+        data = data.reshape((-1, 28, 28, 1))
+
+        predictions = self.model.predict(data)
+
+        labels = np.argmax(predictions, axis=1)
+
+        return labels
 
     def visualize_data(self, data):
         """
