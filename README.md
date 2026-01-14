@@ -25,7 +25,6 @@ This project implements a CNN-based image classification pipeline for recognizin
 
 ## Data
 Dataset files (`train.csv`, `test.csv`) are not tracked in this repository due to size constraints.
-To run the project locally, place these files in the project root directory or upload them in Google Colab as instructed in the assignment.
 
 ## Attribution
 This project was developed as part of the course *COMS 4701: Artificial Intelligence*  
